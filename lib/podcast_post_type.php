@@ -62,7 +62,7 @@ class Podcast_Post_Type
         add_action('admin_menu', [$this, 'create_expert_settings_menu_entry'], 200);
         add_action('admin_menu', [$this, 'create_tools_menu_entry'], 250);
         add_action('admin_menu', [$this, 'create_support_menu_entry'], 300);
-        add_action('admin_menu', [$this, 'create_wizard_menu_entry'], 350);
+        add_action('admin_menu', [$this, 'create_onboarding_menu_entry'], 350);
 
         add_action('after_delete_post', [$this, 'delete_trashed_episodes']);
         add_filter('pre_get_posts', [$this, 'enable_tag_and_category_search']);
@@ -195,9 +195,9 @@ class Podcast_Post_Type
         new \Podlove\Settings\Support(self::SETTINGS_PAGE_HANDLE);
     }
 
-    public function create_wizard_menu_entry()
+    public function create_onboarding_menu_entry()
     {
-        new \Podlove\Modules\Wizard\Wizard(self::SETTINGS_PAGE_HANDLE);
+        new \Podlove\Settings\Onboarding(self::SETTINGS_PAGE_HANDLE);
     }
 
     /**
