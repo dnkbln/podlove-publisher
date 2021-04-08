@@ -21,6 +21,8 @@ import Shownotes from './components/Shownotes'
 import ShownotesEntry from './components/ShownotesEntry'
 import Transcripts from './components/Transcripts'
 import Draggable from 'vuedraggable'
+import Onboarding from './components/Onboarding'
+import {store} from './components/wizard/store/store'
 
 Vue.component('chapters', Chapters);
 Vue.component('chapter', Chapter);
@@ -75,3 +77,17 @@ if (document.getElementById('podlove-analytics-app')) {
         el: '#podlove-analytics-app'
     });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('podlove-setup-wizard')) {
+        new Vue({
+            render: h => h(Onboarding),
+            store
+          }).$mount('#podlove-setup-wizard')
+    
+        // window.wizardApp = new Vue({
+        //     el: '#podlove-setup-wizard'
+        // });
+    }
+
+}, false);
