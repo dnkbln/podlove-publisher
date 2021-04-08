@@ -30,28 +30,13 @@ class Onboarding
 
     public function page()
     {
-        $onboardingSteps = [
-            new Onboarding\Settings\OnboardingStart(),
-            new Onboarding\Settings\OnboardingEnd(),
-        ];
-
-        // start-index must be 1, not 0
-        array_unshift($onboardingSteps, 'whatever');
-        unset($onboardingSteps[0]);
-
-        if (isset($_REQUEST['step']) && $_REQUEST['step'] > 0 && $_REQUEST['step'] < 3) {
-            $current_step = (int) $_REQUEST['step'];
-        }
-        else 
-        {
-            $current_step = 1;
-        }
         ?>
-        <div class="wrap bootstrap">
-        <?php
-            $onboardingSteps[$current_step]->template();
-        ?>
-        </div>
-        <?php
+		<div class="wrap">
+            <h2><Onboarding</h2>
+            <p> Hier entsteht ein Onboarding Wizard </p>
+		</div>	
+		<?php
+
+        do_action('podlove_support_page_footer');
     }
 }
