@@ -3,6 +3,7 @@
 namespace Podlove\Modules\Transcripts;
 
 use Podlove\Model\Episode;
+use Podlove\Model\Podcast;
 use Podlove\Modules\Transcripts\Model\Transcript;
 
 /**
@@ -44,6 +45,27 @@ class Renderer
         return json_encode($this->get_data($mode));
     }
 
+    /**
+     * Render transcript as JSON according to podcastindex spec.
+     *
+     * @see https://github.com/Podcastindex-org/podcast-namespace/blob/main/transcripts/transcripts.md#json
+     *
+     * @return string
+     */
+    public function as_podcastindex_json()
+    {
+        $data = array_map(function ($entry) {
+            return [
+                'speaker' => $entry['voice'],
+                'startTime' => $entry['start_ms'] / 1000,
+                'endTime' => $entry['end_ms'] / 1000,
+                'body' => $entry['text']
+            ];
+        }, $this->get_data());
+
+        return json_encode(['version' => '1.0.0', 'segments' => $data]);
+    }
+
     public function as_xml()
     {
         $xml = new \SimpleXMLElement(
@@ -83,7 +105,15 @@ class Renderer
             );
         }, $transcript);
 
-        return "WEBVTT\n\n".implode("\n\n", $transcript)."\n";
+        $note = "NOTE\n";
+        $note .= 'Podcast: '.Podcast::get()->title."\n";
+        $note .= 'Episode: '.$this->episode->title()."\n";
+        $note .= 'Publishing Date: '.get_the_date('c', $this->episode->post_id)."\n";
+        $note .= 'Podcast URL: '.Podcast::get()->landing_page_url()."\n";
+        $note .= 'Episode URL: '.get_permalink($this->episode->post_id)."\n";
+        $note .= "\n";
+
+        return "WEBVTT\n\n".$note.implode("\n\n", $transcript)."\n";
     }
 
     public static function format_time($time_ms)

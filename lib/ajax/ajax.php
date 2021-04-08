@@ -42,6 +42,8 @@ class Ajax
             'analytics-global-sources',
             'analytics-global-downloads-per-month',
             'analytics-global-top-episodes',
+            'analytics-global-total-downloads',
+            'analytics-global-total-downloads-by-show',
             'analytics-csv-episodes-table',
             'episode-slug',
             'admin-news',
@@ -227,6 +229,7 @@ class Ajax
         \Podlove\Feeds\check_for_and_do_compression('text/plain');
         echo $csv;
         ob_end_flush();
+
         exit;
     }
 
@@ -376,12 +379,14 @@ class Ajax
 
         if ($etagHeader == $etag) {
             header('HTTP/1.1 304 Not Modified');
+
             exit;
         }
 
         \Podlove\Feeds\check_for_and_do_compression('text/plain');
         echo $content;
         ob_end_flush();
+
         exit;
     }
 
@@ -428,12 +433,14 @@ class Ajax
 
         if ($etagHeader == $etag) {
             header('HTTP/1.1 304 Not Modified');
+
             exit;
         }
 
         \Podlove\Feeds\check_for_and_do_compression('text/plain');
         echo $content;
         ob_end_flush();
+
         exit;
     }
 
@@ -470,7 +477,6 @@ class Ajax
         $data = \Podlove\Downloads_List_Data::get_data('post_date', 'asc');
 
         $writer = Writer::createFromFileObject(new \SplTempFileObject()); //the CSV file will be created into a temporary File
-        $writer->setEncodingFrom('utf-8');
 
         $headers = array_keys($data[0]);
         $writer->insertOne($headers);
@@ -481,6 +487,7 @@ class Ajax
         header('Content-Disposition: attachment; filename=podlove-episode-downloads.csv');
         echo $writer;
         ob_end_flush();
+
         exit;
     }
 
@@ -490,7 +497,8 @@ class Ajax
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
         header('Content-type: application/json');
         echo json_encode($result);
-        die();
+
+        exit();
     }
 
     // SELECT
@@ -561,6 +569,7 @@ class Ajax
         });
 
         ob_end_flush();
+
         exit;
     }
 
@@ -597,6 +606,7 @@ class Ajax
         });
 
         ob_end_flush();
+
         exit;
     }
 
@@ -632,6 +642,7 @@ class Ajax
         });
 
         ob_end_flush();
+
         exit;
     }
 
@@ -669,6 +680,7 @@ class Ajax
         });
 
         ob_end_flush();
+
         exit;
     }
 
@@ -704,13 +716,52 @@ class Ajax
         });
 
         ob_end_flush();
+
+        exit;
+    }
+
+    public static function analytics_global_total_downloads()
+    {
+        if (!current_user_can('podlove_read_analytics')) {
+            exit;
+        }
+
+        echo \Podlove\Cache\TemplateCache::get_instance()->cache_for('analytics_global_downloads_total'.self::analytics_date_cache_key(), function () {
+            global $wpdb;
+
+            $downloads = $wpdb->get_var('
+				SELECT count(id)
+				FROM   '.Model\DownloadIntentClean::table_name().' di
+				WHERE  '.self::analytics_date_condition().'
+			');
+
+            return number_format_i18n($downloads);
+        });
+
+        exit;
+    }
+
+    public static function analytics_global_total_downloads_by_show()
+    {
+        if (!current_user_can('podlove_read_analytics')) {
+            exit;
+        }
+
+        echo \Podlove\Cache\TemplateCache::get_instance()->cache_for('analytics_global_show_downloads'.self::analytics_date_cache_key(), function () {
+            $downloads = \Podlove\Model\DownloadIntentClean::total_downloads_by_show(self::analytics_date_condition());
+
+            ob_start();
+
+            include 'ajax.analytics_global_total_downloads_by_show.html.php';
+
+            return ob_get_clean();
+        });
+
         exit;
     }
 
     public static function analytics_global_top_episodes()
     {
-        global $wpdb;
-
         if (!current_user_can('podlove_read_analytics')) {
             exit;
         }
@@ -746,6 +797,7 @@ class Ajax
         });
 
         ob_end_flush();
+
         exit;
     }
 
@@ -774,6 +826,7 @@ class Ajax
     {
         if (!current_user_can('administrator')) {
             echo 'No permission';
+
             exit;
         }
 
@@ -798,6 +851,7 @@ class Ajax
     {
         if (!current_user_can('administrator')) {
             echo 'No permission';
+
             exit;
         }
 
@@ -808,13 +862,14 @@ class Ajax
             ->update_attributes(['position' => $position])
         ;
 
-        die();
+        exit();
     }
 
     public function update_feed_position()
     {
         if (!current_user_can('administrator')) {
             echo 'No permission';
+
             exit;
         }
 
@@ -825,7 +880,7 @@ class Ajax
             ->update_attributes(['position' => $position])
         ;
 
-        die();
+        exit();
     }
 
     public function hide_teaser()
@@ -851,7 +906,8 @@ class Ajax
     public function episode_slug()
     {
         echo sanitize_title($_REQUEST['title']);
-        die();
+
+        exit();
     }
 
     private static function analytics_date_condition()
@@ -863,8 +919,8 @@ class Ajax
             return '1 = 1';
         }
 
-        $from = new \DateTime($from);
-        $to = new \DateTime($to);
+        $from = (new \DateTime($from))->setTime(0, 0, 0);
+        $to = (new \DateTime($to))->setTime(23, 59, 59);
 
         if (!$from || !$to) {
             return '1 = 1';

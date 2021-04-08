@@ -10,17 +10,24 @@
             </div>
           </div>
           <div class="content">
-            <slacknotes mode="import" v-on:import:entries="onImportEntries"></slacknotes>
+            <slacknotes
+              mode="import"
+              v-on:import:entries="onImportEntries"
+            ></slacknotes>
           </div>
         </div>
       </div>
       <div class="shownotes-modal-backdrop"></div>
     </div>
     <div v-else>
+      <div v-if="unfurlingProgress != 100" style="margin-bottom: 12px">
+        Importing: {{ unfurlingProgress }}%
+      </div>
+
       <draggable
         v-model="shownotes"
         @update="onDragEnd"
-        :options="{ghostClass: 'ghost', handle: '.drag-handle'}"
+        :options="{ ghostClass: 'ghost', handle: '.drag-handle' }"
       >
         <shownotes-entry
           :entry="entry"
@@ -33,7 +40,9 @@
       </draggable>
 
       <div class="p-expand" v-if="isTruncatedView">
-          <a href="#" class="button" @click.prevent="isTruncatedView = false">Expand to view all Shownotes</a>
+        <a href="#" class="button" @click.prevent="isTruncatedView = false"
+          >Expand to view all Shownotes</a
+        >
       </div>
 
       <div class="p-card create-card" v-if="mode == 'create'">
@@ -42,11 +51,21 @@
             <h3>Add new Entry</h3>
             <div class="p-entry-type-selector">
               <span>
-                <input type="radio" id="entry-type-url" value="link" v-model="newEntryType">
+                <input
+                  type="radio"
+                  id="entry-type-url"
+                  value="link"
+                  v-model="newEntryType"
+                />
                 <label for="entry-type-url">Link</label>
               </span>
               <span>
-                <input type="radio" id="entry-type-topic" value="topic" v-model="newEntryType">
+                <input
+                  type="radio"
+                  id="entry-type-topic"
+                  value="topic"
+                  v-model="newEntryType"
+                />
                 <label for="entry-type-topic">Topic</label>
               </span>
             </div>
@@ -60,15 +79,17 @@
                 placeholder="https://example.com"
                 :disabled="mode == 'create-waiting'"
                 v-focus
-              >
+              />
               <button
                 type="button"
                 class="button button-primary"
                 @click.prevent="onCreateEntry"
                 :disabled="mode == 'create-waiting'"
-              >Add</button>
+              >
+                Add
+              </button>
             </div>
-            <div v-else-if="newEntryType == 'topic'"  class="p-new-entry-form">
+            <div v-else-if="newEntryType == 'topic'" class="p-new-entry-form">
               <input
                 @keydown.enter.prevent="onCreateEntry"
                 @keydown.esc="mode = 'idle'"
@@ -77,13 +98,15 @@
                 placeholder="Topic, Subheading"
                 :disabled="mode == 'create-waiting'"
                 v-focus
-              >
+              />
               <button
                 type="button"
                 class="button button-primary"
                 @click.prevent="onCreateEntry"
                 :disabled="mode == 'create-waiting'"
-              >Add</button>
+              >
+                Add
+              </button>
             </div>
           </div>
         </div>
@@ -93,9 +116,11 @@
         <button
           type="button"
           class="button create-button"
-          @click.prevent="isTruncatedView = false, mode = 'create'"
+          @click.prevent="(isTruncatedView = false), (mode = 'create')"
           v-if="mode != 'create'"
-        >Add Entry</button>
+        >
+          Add Entry
+        </button>
 
         <div>
           <button
@@ -103,21 +128,36 @@
             class="button create-button"
             @click.prevent="mode = 'import-slacknotes'"
             v-if="mode != 'create'"
-          >Import from Slacknotes</button>
-          
+          >
+            Import from Slacknotes
+          </button>
+
           <button
             type="button"
             class="button create-button"
             @click.prevent="importOsfShownotes"
             v-if="osf_active && mode != 'create'"
-          >Import OSF Shownotes</button>
-          
+          >
+            Import OSF Shownotes
+          </button>
+
           <button
             type="button"
             class="button create-button"
             @click.prevent="importHTML"
             v-if="mode != 'create'"
-          >Import from Episode HTML</button>
+          >
+            Import from Episode HTML
+          </button>
+
+          <button
+            type="button"
+            class="button delete-button"
+            @click.prevent="deleteAllEntries"
+            v-if="mode != 'create'"
+          >
+            Delete all
+          </button>
         </div>
       </div>
     </div>
@@ -210,10 +250,12 @@ export default {
 
       console.log("slack import", entries);
 
-      // console.log("import", entries);
-      entries.forEach(({ url: url, data: data }) =>
-        this.createEntry(url, "link", data)
-      );
+      let orderNumber = 0;
+      entries.forEach(({ url: url, data: data }) => {
+        orderNumber++;
+        data.orderNumber = orderNumber;
+        this.createEntry(url, "link", data);
+      });
     },
     onDragEnd: function (e) {
       let newPosition = null;
@@ -258,7 +300,7 @@ export default {
         post_id: podlove_vue.post_id,
       })
         .done((result) => {
-          this.init();
+          this.init(true);
         })
         .fail(({ responseJSON }) => {
           console.error("could not import osf:", responseJSON.message);
@@ -275,7 +317,19 @@ export default {
           console.error("could not import html:", responseJSON.message);
         });
     },
-    init: function () {
+    deleteAllEntries: function () {
+      if (window.confirm("Permanently delete all shownotes entries?")) {
+        this.shownotes.forEach((entry) =>
+          jQuery.ajax({
+            url: podlove_vue.rest_url + "podlove/v1/shownotes/" + entry.id,
+            method: "DELETE",
+            dataType: "json",
+          })
+        );
+        this.shownotes = [];
+      }
+    },
+    init: function (forceExpand = false) {
       $.getJSON(
         podlove_vue.rest_url +
           "podlove/v1/shownotes?episode_id=" +
@@ -285,7 +339,7 @@ export default {
           this.shownotes = shownotes;
           this.ready = true;
           this.isTruncatedView =
-            this.shownotes.length > this.truncatedThreshold;
+            this.shownotes.length > this.truncatedThreshold && !forceExpand;
         })
         .fail(({ responseJSON }) => {
           console.error("could not load shownotes:", responseJSON.message);
@@ -301,6 +355,25 @@ export default {
       }
 
       return shownotes;
+    },
+    unfurlingProgress: function () {
+      const linkEntries = this.shownotes.filter(
+        (entry) => entry.type == "link"
+      );
+      const linkCount = linkEntries.length;
+
+      if (!linkCount) {
+        return 100;
+      }
+
+      const unfurlingCount = linkEntries.filter(
+        (entry) => entry.state == "unfurling"
+      ).length;
+      const progressPercent = Math.floor(
+        (100 * (linkCount - unfurlingCount)) / linkCount
+      );
+
+      return progressPercent;
     },
     sortedShownotes: function () {
       return this.shownotes.sort((a, b) => {
@@ -332,7 +405,7 @@ export default {
 }
 
 .shownotes-wrapper {
-  /* background: #f6f6f6; 
+  /* background: #f6f6f6;
   padding: 9px;*/
   padding-top: 6px;
 }
@@ -456,6 +529,12 @@ export default {
 .shownotes-modal-content {
   padding: 0 12px 12px 12px;
 }
+
+@media screen and (min-width: 960px) {
+  .shownotes-modal-content {
+    padding: 0 12px 12px 150px;
+  }
+}
 .shownotes-modal-content .header {
   display: flex;
   justify-content: space-between;
@@ -478,5 +557,3 @@ export default {
   opacity: 1;
 }
 </style>
-
-
