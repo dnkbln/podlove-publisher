@@ -59,8 +59,7 @@ class WP_REST_Podlove_Controller extends WP_REST_Controller {
             array(
                 'methods' => WP_REST_Server::EDITABLE,
                 'callback' => array( $this, 'update_item'),
-                'permission_callback' => array( $this, 'update_item_permissions_check'),
-                'args' => $this->get_endpoint_args_for_item_schema(false),
+                'permission_callback' => array( $this, 'update_item_permissions_check')
             )
         ));
     }
@@ -78,6 +77,11 @@ class WP_REST_Podlove_Controller extends WP_REST_Controller {
      */
     public function update_item_permissions_check($request)
     {
+        if (! current_user_can( 'manage_options')) {
+            return new WP_Error('rest_forbidden', 
+                esc_html__('sorry, you do not have permissions to use this REST API endpoint'),
+                array('status' => 401));
+        }
         return true;
     }
 
@@ -86,10 +90,13 @@ class WP_REST_Podlove_Controller extends WP_REST_Controller {
         $podcast = Podcast::get();
 
         $res = [];
+        $res['version'] = 'v1';
         $res['title'] = $podcast->title;
         $res['subtitle'] = $podcast->subtitle;
         $res['summary'] = $podcast->summary;
         $res['mnemonic'] = $podcast->mnemonic;
+        if (get_option('podlove_disable_wizard'))
+            $res['wizard'] = $podcast->wizard;
 
         return rest_ensure_response($res);
     }
@@ -109,7 +116,10 @@ class WP_REST_Podlove_Controller extends WP_REST_Controller {
         if ( isset($request['mnemonic'])) {
             $podcast->__set('mnemonic', $request['mnemonic']);
         }
-
+        if ( isset($request['wizard'])) {
+            add_option('podlove_disable_wizard', true);
+            $podcast->wizard = $request['wizard'];
+        }
 
         $podcast->save();
 

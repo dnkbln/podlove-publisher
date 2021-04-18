@@ -84,10 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
             render: h => h(Onboarding),
             store
           }).$mount('#podlove-setup-wizard')
-    
-        // window.wizardApp = new Vue({
-        //     el: '#podlove-setup-wizard'
-        // });
-    }
+        }
 
 }, false);

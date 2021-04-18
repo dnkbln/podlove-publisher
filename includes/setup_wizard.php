@@ -3,7 +3,10 @@
 
 namespace Podlove\Wizard;
 
+use Podlove\Model\Podcast;
+
 define('PODLOVE_WIZARD_URL_KEY', 'podlove-setup-wizard');
+define('PODLOVE_DASHBOARD_URL_KEY', 'podlove_settings_handle');
 
 add_action('wp_loaded', '\Podlove\Wizard\wizard_page', 9);
 add_action('admin_init', '\Podlove\Wizard\maybe_redirect_to_wizard_page', 10);
@@ -12,13 +15,17 @@ function maybe_redirect_to_wizard_page()
 {
     // enable with:
     // define('PODLOVE_WIZARD_ENABLED', true);
-    if (!(defined('PODLOVE_WIZARD_ENABLED') && PODLOVE_WIZARD_ENABLED)) {
-        return;
-    }
+    // if (!(defined('PODLOVE_WIZARD_ENABLED') && PODLOVE_WIZARD_ENABLED)) {
+    //     return;
+    //}
 
     // allow to disable wizard via filter
-    if (!apply_filters('podlove_enable_setup_wizard', true)) {
-        return;
+    // if (!apply_filters('podlove_enable_setup_wizard', true)) {
+    //     return;
+    // }
+
+    if (get_option('podlove_disable_wizard')) {
+        return; 
     }
 
     // don't redirect when we're on the page
@@ -49,8 +56,9 @@ function wizard_page()
     if ($_GET['page'] != PODLOVE_WIZARD_URL_KEY) {
         return;
     }
-
-    wp_enqueue_script('podlove-episode-vue-apps', \Podlove\PLUGIN_URL.'/js/dist/app.js', ['underscore', 'jquery']); ?><!DOCTYPE html>
+    wp_register_style('tailwind', \Podlove\PLUGIN_URL.'/css/tailwind.css', [], \Podlove\get_plugin_header('Version'));
+    wp_enqueue_style('tailwind');
+    wp_enqueue_script('podlove-episode-vue-apps', \Podlove\PLUGIN_URL.'/js/dist/app.js', ['underscore', 'jquery']);?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
