@@ -3,7 +3,7 @@ Contributors: eteubert, chemiker
 Donate link: http://podlove.org/donations/
 Tags: podlove, podcast, publishing, rss, feed, audio, mp3, m4a, player, webplayer, iTunes, radio, ClassicPress
 Requires at least: 4.9.6
-Tested up to: 5.5.3
+Tested up to: 5.7.1
 Requires PHP: 7.0
 Stable tag: 3.2.0-beta1
 License: MIT
@@ -106,18 +106,9 @@ This product includes GeoLite2 data created by MaxMind, available from http://ww
 
 == Changelog ==
 
-= 2021-04-15 =
+= 2021-04-24 =
 
-* revert permalink changes from releases 3.5.0 and 3.5.1
-* fix: remove usage of PHP 7.1 syntax in one file
-
-= 2021-04-14 =
-
-* add: expert setting to make episode permalinks `/%postname%/`
-
-= 2021-04-12 =
-
-* include Publisher Database Version in system report
+* generate default copyright claim if it is not explcitly set
 
 ----
 

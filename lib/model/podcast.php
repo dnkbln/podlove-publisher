@@ -229,6 +229,11 @@ class Podcast implements Licensable
         return strlen(trim($this->cover_image)) > 0;
     }
 
+    public function default_copyright_claim()
+    {
+        return '© '.date('Y').' '.($this->author_name ?? $this->title);
+    }
+
     /**
      * Episodes.
      *
@@ -475,4 +480,5 @@ Podcast::property('flattr'); // @deprecated since 2.3.0 (now: wp_option "podlove
 Podcast::property('plus_enable_proxy');
 Podcast::property('funding_url');
 Podcast::property('funding_label');
+Podcast::property('copyright');
 Podcast::property('wizard');
