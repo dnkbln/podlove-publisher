@@ -63,16 +63,25 @@ export default {
         this.actStep = this.numStep;
     },
     sendDataToPodlove: function() {
-      console.log('call axios');
+      let url = podlove_vue.rest_url + 'podlove/v1/podlove'; 
       this.axios
-        .patch('http://localhost:10003/wp-json/podlove/v1/podlove',
+        .patch(url,
         {
           title: this.$store.getters.title,
           subtitle: this.$store.getters.subtitle,
-          wizard: 1
-        },
+          summary: this.$store.getters.summary,
+          wizard: -1
+        }, 
         {
+          headers: {
+            'X-WP-Nonce': podlove_vue.nonce
+          }
+        })
+        .then(({$data}) => {
 
+        })
+        .catch((error) => {
+          alert("Daten konnten nicht eingetragen werden");
         });
       this.finish = 1;
     }

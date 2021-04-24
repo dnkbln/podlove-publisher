@@ -72,6 +72,9 @@ function podlove_setup_podcast()
     if (!$podcast->limit_items) {
         $podcast->limit_items = Model\Feed::ITEMS_NO_LIMIT;
     }
+    if (!$podcast->wizard) {
+        $podcast->wizard = -1;
+    }
     $podcast->save();
 }
 

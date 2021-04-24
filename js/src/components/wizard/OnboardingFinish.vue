@@ -12,6 +12,9 @@
         <tr>
           <td> Untertitel </td> <td> {{$store.getters.subtitle}} </td>
         </tr>
+        <tr>
+          <td> Zusammenfassung </td> <td> {{$store.getters.summary}} </td>
+        </tr>
       </table>
     </div>
   </div>
